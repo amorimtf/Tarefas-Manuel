@@ -446,15 +446,15 @@ function euro(n){ return n.toLocaleString('pt-PT',{minimumFractionDigits:2, maxi
 
 async function loadState(){
   try{
-    const res = await window.storage.get('manuel-tarefas-state', false);
-    if(res && res.value){
-      const parsed = JSON.parse(res.value);
+    const raw = localStorage.getItem('manuel-tarefas-state');
+    if(raw){
+      const parsed = JSON.parse(raw);
       state = Object.assign(state, parsed);
     }
-  }catch(e){ /* no saved state yet */ }
+  }catch(e){ console.error('Falha ao carregar', e); }
 }
 async function saveState(){
-  try{ await window.storage.set('manuel-tarefas-state', JSON.stringify(state), false); }
+  try{ localStorage.setItem('manuel-tarefas-state', JSON.stringify(state)); }
   catch(e){ console.error('Falha ao guardar', e); }
 }
 
