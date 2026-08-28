@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Aventura de Power-Ups do Manuel</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#5c94fc">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#5c94fc;
+    --sky-bottom:#89bdff;
+    --ground:#c84c0c;
+    --ground-deep:#8a3208;
+    --panel:#fff7e6;
+    --panel-dark:#f0dca8;
+    --coin:#fbd000;
+    --coin-deep:#c89a00;
+    --pipe:#00a800;
+    --pipe-deep:#046b00;
+    --brick:#c84c0c;
+    --ink:#2b1a06;
+    --green:#00a800;
+    --radius:10px;
+    --shadow: 0 6px 0 rgba(0,0,0,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    font-family:'Nunito',sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 12% 10%, rgba(255,255,255,0.55) 0 26px, transparent 27px),
+      radial-gradient(circle at 30% 6%, rgba(255,255,255,0.5) 0 20px, transparent 21px),
+      radial-gradient(circle at 75% 14%, rgba(255,255,255,0.5) 0 30px, transparent 31px),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+    padding: 20px 14px 60px;
+  }
+  .wrap{max-width:520px;margin:0 auto;}
+
+  h1,h2,h3{font-family:'Press Start 2P',cursive;margin:0;line-height:1.5;}
+
+  /* header */
+  .header{
+    text-align:center;
+    padding: 10px 6px 22px;
+    position:relative;
+  }
+  .header .flag{font-size:38px;display:block;margin-bottom:6px;}
+  .header h1{
+    color:#fff;
+    font-size:17px;
+    letter-spacing:0.5px;
+    text-shadow: 3px 3px 0 var(--ground-deep);
+  }
+  .header p{
+    color:var(--coin);
+    font-family:'Nunito',sans-serif;
+    font-weight:800;
+    font-size:14px;
+    margin-top:10px;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.35);
+  }
+  .rope-divider{
+    height:14px;
+    margin: 16px auto 0;
+    max-width:380px;
+    background-image: repeating-linear-gradient(90deg, var(--brick) 0 14px, var(--ground-deep) 14px 16px);
+    border-radius:2px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+  }
+
+  /* card base */
+  .card{
+    background:var(--panel);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow), 0 0 0 4px var(--ground-deep) inset;
+    padding:16px;
+    margin-bottom:16px;
+    border:none;
+  }
+
+  /* day tabs */
+  .days{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    margin-bottom:14px;
+    scrollbar-width:none;
+  }
+  .days::-webkit-scrollbar{display:none;}
+  .day-btn{
+    flex:0 0 auto;
+    padding:10px 12px;
+    border-radius:6px;
+    border:none;
+    background:var(--ground-deep);
+    color:#fff;
+    font-family:'Press Start 2P',cursive;
+    font-size:10px;
+    cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.35);
+    transition:transform .15s ease, background .15s ease;
+  }
+  .day-btn:active{transform:scale(0.94);}
+  .day-btn.active{
+    background:var(--coin);
+    color:var(--ink);
+    box-shadow:0 3px 0 var(--coin-deep);
+  }
+  .day-btn .dot{
+    display:inline-block;
+    width:7px;height:7px;border-radius:50%;
+    background:var(--pipe);
+    margin-left:6px;
+    vertical-align:middle;
+    opacity:0;
+  }
+  .day-btn.done .dot{opacity:1;}
+
+  /* total banner */
+  .total-banner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--coin);
+    border-radius:var(--radius);
+    padding:14px 18px;
+    margin-bottom:16px;
+    box-shadow:0 6px 0 var(--coin-deep);
+  }
+  .total-banner .label{
+    font-family:'Press Start 2P',cursive;
+    font-size:9px;
+    color:#5c3d00;
+  }
+  .total-banner .amount{
+    font-family:'Press Start 2P',cursive;
+    font-size:20px;
+    color:var(--ink);
+    margin-top:6px;
+  }
+  .total-banner .coin-icon{font-size:32px;}
+
+  /* task list */
+  .task{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 6px;
+    border-bottom:2px dashed var(--panel-dark);
+  }
+  .task:last-child{border-bottom:none;}
+  .task .icon{font-size:26px;width:34px;text-align:center;}
+  .task .info{flex:1;}
+  .task .name{font-weight:800;font-size:15.5px;color:var(--ink);}
+  .task .value{font-size:12.5px;color:var(--pipe-deep);font-weight:700;}
+  .coin-toggle{
+    width:42px;height:42px;
+    border-radius:8px;
+    border:3px solid var(--coin-deep);
+    background:var(--coin);
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:transform .18s ease;
+  }
+  .coin-toggle.unchecked{
+    background:rgba(0,0,0,0.06);
+    border-color:rgba(0,0,0,0.15);
+    color:transparent;
+  }
+  .coin-toggle.pop{animation:pop .35s ease;}
+  @keyframes pop{
+    0%{transform:scale(1);}
+    45%{transform:scale(1.35) rotate(10deg);}
+    100%{transform:scale(1);}
+  }
+
+  /* chests */
+  .chests-title{
+    color:#fff;
+    text-align:center;
+    font-size:13px;
+    margin: 26px 0 14px;
+    text-shadow: 2px 2px 0 var(--ground-deep);
+  }
+  .chest-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .chest-card .chest-icon{
+    font-size:32px;
+    width:50px;height:50px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--panel-dark);
+    border-radius:8px;
+    flex-shrink:0;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+  .chest-card .chest-body{flex:1;}
+  .chest-card .chest-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:5px;
+  }
+  .chest-card .chest-name{font-family:'Press Start 2P',cursive;font-size:10.5px;}
+  .chest-card .chest-amount{font-family:'Press Start 2P',cursive;font-size:11px;color:var(--ground-deep);}
+  .bar-track{
+    background:var(--panel-dark);
+    border-radius:4px;
+    height:14px;
+    overflow:hidden;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,0.1);
+  }
+  .bar-fill{
+    height:100%;
+    border-radius:2px;
+    transition:width .5s ease;
+  }
+  .goal-note{font-size:11.5px;color:#7a5a1f;margin-top:5px;}
+
+  /* split controls */
+  .split-row{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  .split-item{
+    flex:1;
+    text-align:center;
+    background:var(--panel-dark);
+    border-radius:8px;
+    padding:7px 4px;
+  }
+  .split-item label{display:block;font-size:10px;font-weight:700;color:#5c4a1f;margin-bottom:3px;}
+  .split-item input{
+    width:100%;
+    text-align:center;
+    border:none;
+    background:transparent;
+    font-family:'Press Start 2P',cursive;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .split-warning{
+    font-size:11.5px;
+    color:#c02020;
+    font-weight:700;
+    text-align:center;
+    margin-top:6px;
+    min-height:14px;
+  }
+
+  /* end week button */
+  .end-week-btn{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:8px;
+    background:var(--pipe);
+    color:#fff;
+    font-family:'Press Start 2P',cursive;
+    font-size:11px;
+    cursor:pointer;
+    box-shadow:0 5px 0 var(--pipe-deep);
+    margin-top:10px;
+  }
+  .end-week-btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--pipe-deep);}
+  .end-week-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+  .footer-note{
+    text-align:center;
+    color:rgba(255,255,255,0.75);
+    font-size:12px;
+    margin-top:18px;
+    line-height:1.5;
+    text-shadow:1px 1px 0 rgba(0,0,0,0.25);
+  }
+
+  /* celebration overlay */
+  .celebrate{
+    position:fixed;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(10,20,50,0.75);
+    z-index:50;
+    opacity:0;pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .celebrate.show{opacity:1;pointer-events:auto;}
+  .celebrate-box{
+    background:var(--panel);
+    border-radius:14px;
+    padding:30px 26px;
+    text-align:center;
+    max-width:320px;
+    box-shadow:0 10px 0 var(--coin-deep), 0 0 0 4px var(--ground-deep) inset;
+    transform:scale(0.85);
+    transition:transform .25s ease;
+  }
+  .celebrate.show .celebrate-box{transform:scale(1);}
+  .celebrate-box .big-emoji{font-size:52px;display:block;margin-bottom:12px;}
+  .celebrate-box h3{font-size:14px;margin-bottom:12px;}
+  .celebrate-box p{font-size:14px;color:#5c4a1f;margin:0 0 18px;font-family:'Nunito',sans-serif;font-weight:700;}
+  .celebrate-box button{
+    padding:12px 22px;
+    border:none;
+    border-radius:8px;
+    background:var(--pipe);
+    color:#fff;
+    font-family:'Press Start 2P',cursive;
+    font-size:11px;
+    cursor:pointer;
+    box-shadow:0 4px 0 var(--pipe-deep);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <span class="flag">🍄</span>
+    <h1>Aventura de Power-Ups do Manuel</h1>
+    <p>Cumpre as missões, ganha moedas!</p>
+    <div class="rope-divider"></div>
+  </div>
+
+  <div class="days" id="dayTabs"></div>
+
+  <div class="total-banner">
+    <div>
+      <div class="label">Moedas desta semana</div>
+      <div class="amount" id="weekTotal">0,00 €</div>
+    </div>
+    <div class="coin-icon">🪙</div>
+  </div>
+
+  <div class="card">
+    <div id="taskList"></div>
+  </div>
+
+  <h3 style="color:#fff;text-shadow:2px 2px 0 var(--ground-deep);text-align:center;font-family:'Press Start 2P',cursive;font-size:11px;margin-bottom:14px;">🧱 Missões da semana</h3>
+  <div class="card">
+    <div id="weeklyTaskList"></div>
+  </div>
+
+  <h2 class="chests-title">⭐ Blocos de Bónus</h2>
+
+  <div class="card">
+    <div class="chest-card">
+      <div class="chest-icon">🏰</div>
+      <div class="chest-body">
+        <div class="chest-head">
+          <span class="chest-name">Poupar</span>
+          <span class="chest-amount" id="amtSave">0,00 €</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="barSave" style="background:var(--pipe);width:0%"></div></div>
+        <div class="goal-note" id="goalNote">Meta (40% do máximo semanal): <span id="goalAmt">0,00 €</span> — falta <span id="goalLeft">0,00 €</span></div>
+      </div>
+    </div>
+    <div class="chest-card">
+      <div class="chest-icon">🛒</div>
+      <div class="chest-body">
+        <div class="chest-head">
+          <span class="chest-name">Gastar</span>
+          <span class="chest-amount" id="amtSpend">0,00 €</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="barSpend" style="background:var(--coin-deep);width:0%"></div></div>
+      </div>
+    </div>
+    <div class="chest-card">
+      <div class="chest-icon">🎁</div>
+      <div class="chest-body">
+        <div class="chest-head">
+          <span class="chest-name">Ajudar</span>
+          <span class="chest-amount" id="amtGive">0,00 €</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="barGive" style="background:var(--brick);width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="split-row">
+      <div class="split-item"><label>Poupar %</label><input type="number" id="splitSave" min="0" max="100"></div>
+      <div class="split-item"><label>Gastar %</label><input type="number" id="splitSpend" min="0" max="100"></div>
+      <div class="split-item"><label>Ajudar %</label><input type="number" id="splitGive" min="0" max="100"></div>
+    </div>
+    <div class="split-warning" id="splitWarning"></div>
+
+    <button class="end-week-btn" id="endWeekBtn">🏁 Fechar semana!</button>
+  </div>
+
+  <p class="footer-note">Marca uma moeda 🪙 sempre que terminares uma missão.<br>No fim da semana, carrega no botão para repartir as moedas pelos blocos de bónus — como no jogo do Dave Ramsey!</p>
+</div>
+
+<div class="celebrate" id="celebrate">
+  <div class="celebrate-box">
+    <span class="big-emoji">⭐</span>
+    <h3>Nível concluído!</h3>
+    <p id="celebrateText">As moedas foram repartidas pelos blocos de bónus. Boa sorte na próxima aventura!</p>
+    <button id="celebrateClose">Vamos lá!</button>
+  </div>
+</div>
+
+<script>
+const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+const WEEKDAYS = ["Segunda","Terça","Quarta","Quinta","Sexta"];
+// freq: "daily" = todos os dias · "weekday" = só seg a sex · "weekly" = uma vez por semana (não ligado a um dia)
+const TASKS = [
+  {id:"cama",   name:"Fazer a cama",          value:0.10, icon:"🛏️", freq:"daily"},
+  {id:"pijama", name:"Dobrar o pijama",        value:0.10, icon:"👕", freq:"daily"},
+  {id:"bring",  name:"Arrumar os brinquedos",  value:0.10, icon:"🧸", freq:"daily"},
+  {id:"mesa",   name:"Pôr a mesa",             value:0.25, icon:"🍽️", freq:"daily"},
+  {id:"mochila",name:"Arrumar a mochila",      value:0.10, icon:"🎒", freq:"weekday"},
+  {id:"po",     name:"Limpar o pó",            value:1.00, icon:"🧹", freq:"weekly"},
+  {id:"chao",   name:"Limpar o chão",          value:1.00, icon:"🧽", freq:"weekly"},
+  {id:"roupa",  name:"Dobrar a roupa",         value:1.00, icon:"👚", freq:"weekly"},
+];
+
+function maxWeeklyValue(){
+  let sum = 0;
+  TASKS.forEach(t=>{
+    if(t.freq==="daily") sum += t.value*7;
+    else if(t.freq==="weekday") sum += t.value*5;
+    else sum += t.value; // weekly
+  });
+  return sum;
+}
+const SAVINGS_GOAL_RATIO = 0.40;
+
+let state = {
+  checks: {},                 // "day-taskId": true (daily/weekday) or "weekly-taskId": true
+  chests: {save:0, spend:0, give:0},
+  split: {save:40, spend:40, give:20}
+};
+let currentDay = DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay()-1];
+
+function euro(n){ return n.toLocaleString('pt-PT',{minimumFractionDigits:2, maximumFractionDigits:2}) + " €"; }
+
+async function loadState(){
+  try{
+    const res = await window.storage.get('manuel-tarefas-state', false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state = Object.assign(state, parsed);
+    }
+  }catch(e){ /* no saved state yet */ }
+}
+async function saveState(){
+  try{ await window.storage.set('manuel-tarefas-state', JSON.stringify(state), false); }
+  catch(e){ console.error('Falha ao guardar', e); }
+}
+
+function tasksForDay(day){
+  return TASKS.filter(t => t.freq==="daily" || (t.freq==="weekday" && WEEKDAYS.includes(day)));
+}
+
+function renderDayTabs(){
+  const el = document.getElementById('dayTabs');
+  el.innerHTML = '';
+  DAYS.forEach(day=>{
+    const visible = tasksForDay(day);
+    const doneCount = visible.filter(t => state.checks[day+'-'+t.id]).length;
+    const btn = document.createElement('button');
+    btn.className = 'day-btn' + (day===currentDay?' active':'') + (doneCount===visible.length?' done':'');
+    btn.innerHTML = day.slice(0,3) + '<span class="dot"></span>';
+    btn.onclick = ()=>{ currentDay = day; renderAll(); };
+    el.appendChild(btn);
+  });
+}
+
+function bindCoinToggle(btn, key){
+  btn.onclick = ()=>{
+    state.checks[key] = !state.checks[key];
+    btn.classList.add('pop');
+    setTimeout(()=>btn.classList.remove('pop'), 350);
+    btn.classList.toggle('unchecked', !state.checks[key]);
+    saveState();
+    renderTotals();
+    renderDayTabs();
+  };
+}
+
+function renderTasks(){
+  const el = document.getElementById('taskList');
+  el.innerHTML = '';
+  tasksForDay(currentDay).forEach(t=>{
+    const key = currentDay+'-'+t.id;
+    const checked = !!state.checks[key];
+    const row = document.createElement('div');
+    row.className = 'task';
+    row.innerHTML = `
+      <div class="icon">${t.icon}</div>
+      <div class="info">
+        <div class="name">${t.name}</div>
+        <div class="value">${euro(t.value)}</div>
+      </div>
+      <div class="coin-toggle ${checked?'':'unchecked'}" data-key="${key}">🪙</div>
+    `;
+    el.appendChild(row);
+  });
+  el.querySelectorAll('.coin-toggle').forEach(btn => bindCoinToggle(btn, btn.dataset.key));
+}
+
+function renderWeeklyTasks(){
+  const el = document.getElementById('weeklyTaskList');
+  el.innerHTML = '';
+  TASKS.filter(t=>t.freq==="weekly").forEach(t=>{
+    const key = 'weekly-'+t.id;
+    const checked = !!state.checks[key];
+    const row = document.createElement('div');
+    row.className = 'task';
+    row.innerHTML = `
+      <div class="icon">${t.icon}</div>
+      <div class="info">
+        <div class="name">${t.name}</div>
+        <div class="value">${euro(t.value)} · uma vez por semana</div>
+      </div>
+      <div class="coin-toggle ${checked?'':'unchecked'}" data-key="${key}">🪙</div>
+    `;
+    el.appendChild(row);
+  });
+  el.querySelectorAll('.coin-toggle').forEach(btn => bindCoinToggle(btn, btn.dataset.key));
+}
+
+function weekTotal(){
+  let sum = 0;
+  DAYS.forEach(day=>{
+    tasksForDay(day).forEach(t=>{
+      if(state.checks[day+'-'+t.id]) sum += t.value;
+    });
+  });
+  TASKS.filter(t=>t.freq==="weekly").forEach(t=>{
+    if(state.checks['weekly-'+t.id]) sum += t.value;
+  });
+  return sum;
+}
+
+function renderTotals(){
+  document.getElementById('weekTotal').textContent = euro(weekTotal());
+  document.getElementById('amtSave').textContent = euro(state.chests.save);
+  document.getElementById('amtSpend').textContent = euro(state.chests.spend);
+  document.getElementById('amtGive').textContent = euro(state.chests.give);
+
+  const goal = maxWeeklyValue() * SAVINGS_GOAL_RATIO;
+  const pct = Math.min(100, (state.chests.save/goal)*100 || 0);
+  document.getElementById('barSave').style.width = pct+'%';
+  document.getElementById('goalAmt').textContent = euro(goal);
+  document.getElementById('goalLeft').textContent = euro(Math.max(0, goal - state.chests.save));
+
+  const maxOther = Math.max(state.chests.spend, state.chests.give, 1);
+  document.getElementById('barSpend').style.width = Math.min(100,(state.chests.spend/maxOther)*100)+'%';
+  document.getElementById('barGive').style.width = Math.min(100,(state.chests.give/maxOther)*100)+'%';
+
+  document.getElementById('splitSave').value = state.split.save;
+  document.getElementById('splitSpend').value = state.split.spend;
+  document.getElementById('splitGive').value = state.split.give;
+  validateSplit();
+}
+
+function validateSplit(){
+  const total = Number(state.split.save)+Number(state.split.spend)+Number(state.split.give);
+  const warn = document.getElementById('splitWarning');
+  const btn = document.getElementById('endWeekBtn');
+  if(total !== 100){
+    warn.textContent = `As percentagens somam ${total}% — devem somar 100%`;
+    btn.disabled = true;
+  } else {
+    warn.textContent = '';
+    btn.disabled = weekTotal() <= 0;
+  }
+}
+
+['splitSave','splitSpend','splitGive'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', (e)=>{
+    const key = id.replace('split','').toLowerCase();
+    state.split[key] = Number(e.target.value)||0;
+    validateSplit();
+    saveState();
+  });
+});
+
+document.getElementById('endWeekBtn').onclick = ()=>{
+  const total = weekTotal();
+  if(total<=0) return;
+  state.chests.save += total * (state.split.save/100);
+  state.chests.spend += total * (state.split.spend/100);
+  state.chests.give += total * (state.split.give/100);
+  state.checks = {};
+  saveState();
+
+  const reachedGoal = state.chests.save >= (maxWeeklyValue() * SAVINGS_GOAL_RATIO);
+  document.getElementById('celebrateText').textContent = reachedGoal
+    ? `Repartiste ${euro(total)}! E já atingiste a meta do baú Poupar! 🎉`
+    : `Repartiste ${euro(total)} pelos três baús. Nova semana, novas missões!`;
+  document.getElementById('celebrate').classList.add('show');
+  renderAll();
+};
+document.getElementById('celebrateClose').onclick = ()=>{
+  document.getElementById('celebrate').classList.remove('show');
+};
+
+function renderAll(){
+  renderDayTabs();
+  renderTasks();
+  renderWeeklyTasks();
+  renderTotals();
+}
+
+(async function init(){
+  await loadState();
+  renderAll();
+})();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+  });
+}
+
+</script>
+</body>
+</html>
