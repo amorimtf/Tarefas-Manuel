@@ -438,11 +438,54 @@ const SAVINGS_GOAL_RATIO = 0.40;
 let state = {
   checks: {},                 // "day-taskId": true (daily/weekday) or "weekly-taskId": true
   chests: {save:0, spend:0, give:0},
-  split: {save:40, spend:40, give:20}
+  split: {save:40, spend:40, give:20},
+  weekStart: null              // data (segunda-feira) da semana atualmente em curso
 };
 let currentDay = DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay()-1];
 
 function euro(n){ return n.toLocaleString('pt-PT',{minimumFractionDigits:2, maximumFractionDigits:2}) + " €"; }
+
+function getMondayStr(d){
+  const date = new Date(d);
+  const day = date.getDay(); // 0=Dom,1=Seg,...6=Sáb
+  const diff = (day===0 ? -6 : 1-day);
+  date.setDate(date.getDate()+diff);
+  date.setHours(0,0,0,0);
+  return date.toISOString().slice(0,10);
+}
+
+// Repartição pelos cofres + reinício das tarefas marcadas. Devolve o total repartido.
+function splitAndReset(){
+  const total = weekTotal();
+  if(total>0){
+    state.chests.save += total * (state.split.save/100);
+    state.chests.spend += total * (state.split.spend/100);
+    state.chests.give += total * (state.split.give/100);
+  }
+  state.checks = {};
+  return total;
+}
+
+// Se já mudámos de semana (segunda-feira) desde a última vez que a app foi aberta,
+// fecha automaticamente a semana anterior — mesmo que ninguém tenha carregado no botão.
+async function checkWeekRollover(){
+  const thisMonday = getMondayStr(new Date());
+  if(!state.weekStart){
+    state.weekStart = thisMonday;
+    await saveState();
+    return;
+  }
+  if(state.weekStart !== thisMonday){
+    const total = splitAndReset();
+    state.weekStart = thisMonday;
+    await saveState();
+    if(total>0){
+      document.getElementById('celebrateText').textContent =
+        `Começou uma nova semana! ${euro(total)} da semana passada foram repartidos automaticamente pelos blocos de bónus.`;
+      document.getElementById('celebrate').classList.add('show');
+    }
+  }
+}
 
 async function loadState(){
   try{
@@ -590,10 +633,8 @@ function validateSplit(){
 document.getElementById('endWeekBtn').onclick = ()=>{
   const total = weekTotal();
   if(total<=0) return;
-  state.chests.save += total * (state.split.save/100);
-  state.chests.spend += total * (state.split.spend/100);
-  state.chests.give += total * (state.split.give/100);
-  state.checks = {};
+  splitAndReset();
+  state.weekStart = getMondayStr(new Date());
   saveState();
 
   const reachedGoal = state.chests.save >= (maxWeeklyValue() * SAVINGS_GOAL_RATIO);
@@ -616,6 +657,7 @@ function renderAll(){
 
 (async function init(){
   await loadState();
+  await checkWeekRollover();
   renderAll();
 })();
 
