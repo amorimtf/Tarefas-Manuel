@@ -214,6 +214,16 @@
   }
   .chest-card .chest-name{font-family:'Press Start 2P',cursive;font-size:10.5px;}
   .chest-card .chest-amount{font-family:'Press Start 2P',cursive;font-size:11px;color:var(--ground-deep);}
+  .chest-edit-btn{
+    border:none;
+    background:none;
+    font-size:14px;
+    cursor:pointer;
+    padding:2px 4px;
+    vertical-align:middle;
+    opacity:0.75;
+  }
+  .chest-edit-btn:active{opacity:1;transform:scale(0.9);}
   .bar-track{
     background:var(--panel-dark);
     border-radius:4px;
@@ -360,7 +370,7 @@
       <div class="chest-body">
         <div class="chest-head">
           <span class="chest-name">Poupar</span>
-          <span class="chest-amount" id="amtSave">0,00 €</span>
+          <span><span class="chest-amount" id="amtSave">0,00 €</span> <button class="chest-edit-btn" data-chest="save" title="Ajustar">✏️</button></span>
         </div>
         <div class="bar-track"><div class="bar-fill" id="barSave" style="background:var(--pipe);width:0%"></div></div>
         <div class="goal-note" id="goalNote">Meta (40% do máximo semanal): <span id="goalAmt">0,00 €</span> — falta <span id="goalLeft">0,00 €</span></div>
@@ -371,7 +381,7 @@
       <div class="chest-body">
         <div class="chest-head">
           <span class="chest-name">Gastar</span>
-          <span class="chest-amount" id="amtSpend">0,00 €</span>
+          <span><span class="chest-amount" id="amtSpend">0,00 €</span> <button class="chest-edit-btn" data-chest="spend" title="Ajustar">✏️</button></span>
         </div>
         <div class="bar-track"><div class="bar-fill" id="barSpend" style="background:var(--coin-deep);width:0%"></div></div>
       </div>
@@ -381,7 +391,7 @@
       <div class="chest-body">
         <div class="chest-head">
           <span class="chest-name">Ajudar</span>
-          <span class="chest-amount" id="amtGive">0,00 €</span>
+          <span><span class="chest-amount" id="amtGive">0,00 €</span> <button class="chest-edit-btn" data-chest="give" title="Ajustar">✏️</button></span>
         </div>
         <div class="bar-track"><div class="bar-fill" id="barGive" style="background:var(--brick);width:0%"></div></div>
       </div>
@@ -628,6 +638,21 @@ function validateSplit(){
     validateSplit();
     saveState();
   });
+});
+
+document.querySelectorAll('.chest-edit-btn').forEach(btn=>{
+  btn.onclick = ()=>{
+    const key = btn.dataset.chest; // save | spend | give
+    const names = {save:'Poupar', spend:'Gastar', give:'Ajudar'};
+    const current = state.chests[key].toFixed(2).replace('.', ',');
+    const input = prompt(`Novo valor para o cofre "${names[key]}" (em euros, ex: 0 ou 2,50):`, current);
+    if(input===null) return;
+    const parsed = parseFloat(input.replace(',', '.'));
+    if(isNaN(parsed) || parsed<0){ alert('Valor inválido.'); return; }
+    state.chests[key] = parsed;
+    saveState();
+    renderTotals();
+  };
 });
 
 document.getElementById('endWeekBtn').onclick = ()=>{
